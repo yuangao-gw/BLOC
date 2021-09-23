@@ -1,0 +1,37 @@
+# variables used - 'index' and 'replicas'
+apiVersion: v1
+kind: Service
+metadata:
+  name: testapp-svc-$index
+spec:
+  selector:
+    app: testapp-$index
+  ports:
+  - protocol: "TCP"
+    port: 6000
+    targetPort: 5000
+  type: LoadBalancer
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: testapp-svc-$index
+  labels:
+    app: testapp-$index
+spec:
+  replicas: $replicas
+  selector:
+    matchLabels:
+      app: testapp-$index
+  template:
+    metadata:
+      labels:
+        app: testapp-$index
+    spec:
+      containers:
+      - name: testapp-svc-$index
+        image: ratnadeepb/testapp
+        ports:
+        - containerPort: 5000

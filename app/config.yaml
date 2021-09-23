@@ -1,0 +1,17 @@
+- index: 0
+  svc: 
+    - testapp-svc-1.default.svc.cluster.local:5000
+    - testapp-svc-2.default.svc.cluster.local:5000
+  replicas: 2
+  cost: 20
+
+- index: 1
+  svc:
+    - testapp-svc-2.default.svc.cluster.local:5000
+  replicas: 4
+  cost: 2
+
+- index: 2
+  svc:
+  replicas: 2
+  cost: 4
