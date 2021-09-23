@@ -27,7 +27,6 @@ def writeConfig(image):
         name = "testapp-svc-{}".format(index)
 
         fname = DEP_DIR.format("testapp-svc-{}.yaml".format(index))
-        print("fname: {}, index: {}, replicas: {}".format(fname, index, replicas))
 
         # the service part
         svc = {'apiVersion': 'v1',
@@ -52,7 +51,6 @@ def writeConfig(image):
                                     'template': {'metadata': {'labels': {'app': name}},
                                                     'spec': {'containers': 
                                                                 [{'name': name,
-                                                                    # 'image': 'ratnadeepb/testapp',
                                                                     'image': image,
                                                                     'ports': [
                                                                         {'containerPort': 5000}
