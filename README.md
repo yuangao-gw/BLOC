@@ -63,3 +63,11 @@ This means that upon receiving a request, `App1` makes two new requests to `App2
 Once `App2` receives the ***green*** response, it responds back to `App1` - the ***black*** one.
 
 Note: MiCo makes no timing guaranteess, i.e. the ***yellow*** reponse from `App3` might reach `App1` before the ***green*** response reaches `App2`, for example. However, the request is not complete and any app in the tool will not send a response till all fanout responses are received. For example, in this scenario `App1` will respond to the client only when both ***yellow*** and ***black*** responses are received.
+
+## Note
+
+It is advisable to define the name of the image as an environment variable:
+
+```bash
+export IMG_NAME=<image_name>
+```

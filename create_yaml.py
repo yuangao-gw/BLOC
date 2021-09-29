@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import  yaml
 
 DEP_DIR = "k8s_deployment/{}"
@@ -34,7 +34,7 @@ def writeConfig(image):
                         'metadata': {'name': name},
                         'spec': {'selector': {'app': name},
                                 'ports': [{'protocol': 'TCP',
-                                            'port': 6000,
+                                            'port': 5000,
                                             'targetPort': 5000 }],
                         'type': 'LoadBalancer' }
                         }

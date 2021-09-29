@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
     Extract index from the request path which should be in the form `/svc/index`
@@ -20,6 +20,7 @@ import psutil
 import requests
 from requests.exceptions import ConnectionError
 import joblib
+import logging
 
 app = Flask(__name__)
 
@@ -49,6 +50,8 @@ def failure_response(url, status):
 @app.route('/svc/<int:index>', methods=['GET'])
 def serve(index) -> dict:
     """ Main workhorse function of the app """
+    logger = logging.getLogger("mico_serve_logger")
+
     index = list({index})[0] # get the number from the param
     data = parse_config() # get config data
     if len(data) < index + 1: # number of elements in the config should equal to or more than the index
@@ -65,31 +68,14 @@ def serve(index) -> dict:
         return {'urls': None, 'cost': cost }
     else: # non-leaf node
         try: # request might fail
-            responses = joblib.Parallel(prefer="threads", n_jobs=len(urls))((delayed(requests.get)(url) for url in urls))
+            responses = joblib.Parallel(prefer="threads", n_jobs=len(urls))((delayed(requests.get)("http://{}".format(url)) for url in urls))
         except ConnectionError as e: # send page not found if it does
             s = e.args[0].args[0].split()
             host = s[0].split('=')[1].split(',')[0]
             port = s[1].split('=')[1].split(')')[0]
             return failure_response("{}:{}".format(host, port), 404)
 
-        # # for i, resp in enumerate(responses):
-        # #     if resp.status_code != 200:
-        # #         return failure_response(urls[i], resp.status_code)
-        #     # return failure_response(url, 404)
-        # for url in urls: # make calls to the retrieved urls
-        #     url = "http://{}".format(url)
-        #     try: # request might fail
-        #         r = requests.get(url)
-        #         responses = joblib.Parallel(delayed(requests.get)(url) for url in urls)
-        #     except: # send page not found if it does
-        #         return failure_response(url, 404)
-
-        #     # TODO: turn this into parallel code using multiprocessing/joblib
-        #     # otherwise all requests are sequential in case of a fanout
-        #     if r.status_code != 200: # if any underlying call fails then return immediately
-        #         return failure_response(url, r.status_code)
-
         return {'urls': list(urls), 'cost': cost} # doesn't matter what is returned
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host='0.0.0.0')

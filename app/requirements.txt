@@ -2,3 +2,4 @@ Flask
 psutil
 pyyaml
 requests
+joblib
