@@ -22,10 +22,29 @@ from requests.exceptions import ConnectionError
 import joblib
 import logging
 
+LATEST_RESPONSE_TIME = 0
+
 app = Flask(__name__)
 
+def isPrime(x) -> bool:
+    k = 0
+    for i in range(2, x // 2 + 1):
+        if(x % i==0):
+            k = k + 1
+    if k <= 0:
+        return True
+    else:
+        return False
+
+def largestPrime(x) -> int:
+    prime = -1
+    for num in range(x):
+        if isPrime(num):
+            prime = num
+    return prime
+
 def parse_config() -> list:
-    """ Parsse the config file """
+    """ Parse the config file """
     with open("config.yaml", 'r') as y:
         read_data = yaml.load(y, Loader=yaml.FullLoader)
     return read_data
@@ -41,9 +60,9 @@ def mem_usage():
 @app.route("/statistics", methods=['GET'])
 def get_stats() -> dict:
     """ Get data about CPU and memory usage """
-    return {'cpu': cpu_usage(), 'mem': mem_usage() }
+    return {'cpu': cpu_usage(), 'mem': mem_usage(), 'response_time':  LATEST_RESPONSE_TIME }
 
-def failure_response(url, status):
+def failure_response(url: str, status: int) -> Response:
     """ Send failure response """
     return Response('Error: failed to access {}\n'.format(url), status=status)
 
@@ -62,13 +81,18 @@ def serve(index) -> dict:
     urls = d['svc'] # get all urls to be called
     cost = d['cost'] # cost of this call
 
-    time.sleep(cost) # sleep for time = cost -> TODO: we should change this to something useful
+    p = 10_000
+    global LATEST_RESPONSE_TIME
+    start = time.time()
+    for i in range(cost):
+        largestPrime(p)
+    LATEST_RESPONSE_TIME = time.time() - start
     
     if urls is None: # url list is empty => this is a leaf node
         return {'urls': None, 'cost': cost }
     else: # non-leaf node
         try: # request might fail
-            responses = joblib.Parallel(prefer="threads", n_jobs=len(urls))((delayed(requests.get)("http://{}".format(url)) for url in urls))
+            _ = joblib.Parallel(prefer="threads", n_jobs=len(urls))((delayed(requests.get)("http://{}".format(url)) for url in urls))
         except ConnectionError as e: # send page not found if it does
             s = e.args[0].args[0].split()
             host = s[0].split('=')[1].split(',')[0]
