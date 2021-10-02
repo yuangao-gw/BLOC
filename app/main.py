@@ -90,7 +90,7 @@ def serve(index) -> dict:
     urls = d['svc'] # get all urls to be called
     cost = d['cost'] # cost of this call
 
-    p = 10_000
+    p = 1_000
     for i in range(cost):
         largestPrime(p)
     LOCAL_RESPONSE_TIME = time.time() - start
