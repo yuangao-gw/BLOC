@@ -64,10 +64,25 @@ Once `App2` receives the ***green*** response, it responds back to `App1` - the 
 
 Note: MiCo makes no timing guaranteess, i.e. the ***yellow*** reponse from `App3` might reach `App1` before the ***green*** response reaches `App2`, for example. However, the request is not complete and any app in the tool will not send a response till all fanout responses are received. For example, in this scenario `App1` will respond to the client only when both ***yellow*** and ***black*** responses are received.
 
+## Workhorse of the tool
+
+The workhorse of the tool is a function that finds the largest prime number lesser than a given number by checking each number smaller than the argument.
+
+The `cost` of the function is implemented by running this prime finding function `cost` times with a for loop.
+
 ## Note
 
 It is advisable to define the name of the image as an environment variable:
 
 ```bash
 export IMG_NAME=<image_name>
+```
+
+## Testing with hey
+
+```bash
+wget https://hey-release.s3.us-east-2.amazonaws.com/hey_linux_amd64
+chmod +x hey_linux_amd64
+sudo mv hey_linux_amd64 /usr/local/bin/hey
+hey -z 5m -disable-keepalive http://localhost:30284/svc/0
 ```
