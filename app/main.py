@@ -24,6 +24,8 @@ import logging
 
 LOCAL_RESPONSE_TIME = 0
 TOTAL_RESPONSE_TIME = 0
+START_TIME = time.perf_counter()
+FREQ = 0
 
 app = Flask(__name__)
 
@@ -76,7 +78,15 @@ def serve(index) -> dict:
     """ Main workhorse function of the app """
     global LOCAL_RESPONSE_TIME
     global TOTAL_RESPONSE_TIME
-    start = time.time()
+    global START_TIME
+    global FREQ
+
+    # measure how many requests are we getting
+    tmp = time.perf_counter()
+    FREQ = tmp - START_TIME
+    START_TIME = tmp
+    
+    start = time.perf_counter()
 
     logger = logging.getLogger("mico_serve_logger")
 
@@ -96,7 +106,7 @@ def serve(index) -> dict:
     LOCAL_RESPONSE_TIME = time.time() - start
     
     if urls is None: # url list is empty => this is a leaf node
-        TOTAL_RESPONSE_TIME = time.time() - start
+        TOTAL_RESPONSE_TIME = time.perf_counter() - start
         return {'urls': None, 'cost': cost }
     else: # non-leaf node
         try: # request might fail
@@ -106,11 +116,11 @@ def serve(index) -> dict:
             host = s[0].split('=')[1].split(',')[0]
             port = s[1].split('=')[1].split(')')[0]
 
-            TOTAL_RESPONSE_TIME = time.time() - start
+            TOTAL_RESPONSE_TIME = time.perf_counter() - start
             
             return failure_response("{}:{}".format(host, port), 404)
         
-        TOTAL_RESPONSE_TIME = time.time() - start
+        TOTAL_RESPONSE_TIME = time.perf_counter() - start
         return {'urls': list(urls), 'cost': cost} # doesn't matter what is returned
 
 if __name__ == "__main__":
