@@ -66,7 +66,8 @@ def get_stats() -> dict:
     return {'cpu': cpu_usage(),
             'mem': mem_usage(),
             'local_response_time':  LOCAL_RESPONSE_TIME,
-            'total_response_time': TOTAL_RESPONSE_TIME
+            'total_response_time': TOTAL_RESPONSE_TIME,
+            'perf_counter': FREQ
     }
 
 def failure_response(url: str, status: int) -> Response:
