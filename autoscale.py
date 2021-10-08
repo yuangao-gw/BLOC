@@ -38,16 +38,3 @@ if __name__ == "__main__":
     else:
         THRESHOLD = int(sys.argv[1])
     scale_deps(THRESHOLD)
-
-def usage():
-    print(f"{__file__} <cpu_threshold>")
-    print(f"Using default CPU threshold of {THRESHOLD}")
-
-if __name__ == "__main__":
-    THRESHOLD = 50
-    import sys
-    if len(sys.argv) < 2:
-        usage()
-    else:
-        THRESHOLD = int(sys.argv[1])
-    get_num_svcs(THRESHOLD)
