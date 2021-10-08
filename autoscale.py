@@ -6,7 +6,7 @@ DEP_DIR = "k8s_deployment/"
 
 def get_num_svcs(threshold):
     for name in os.listdir(DEP_DIR):
-        cmd = f"kubectl autoscale deployment {name.split('.')[0]} --min=1 --max=5 --cpu-percent={threshold}"
+        cmd = f"kubectl autoscale deployment {name.split('.')[0]} --min=1 --max=10 --cpu-percent={threshold}"
         os.system(cmd)
 
 def usage():
