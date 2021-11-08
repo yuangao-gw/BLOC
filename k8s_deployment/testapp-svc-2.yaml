@@ -41,3 +41,42 @@ spec:
           requests:
             cpu: 100m
             memory: 50Mi
+      - image: ratnadeepb/micoproxy:latest
+        name: micoproxy
+        ports:
+        - containerPort: 62081
+        - containerPort: 62082
+        securityContext:
+          allowPrivilegeEscalation: y
+          capabilities:
+            add:
+            - NET_ADMIN
+            - NET_RAW
+            drop:
+            - ALL
+          privileged: y
+          runAsUser: 2102
+      initContainers:
+      - command:
+        - /usr/local/micoinit
+        image: ratnadeepb/micoinit:latest
+        name: mico-init1
+        securityContext:
+          privileged: y
+      - args:
+        - -t
+        - nat
+        - -L
+        command:
+        - iptables
+        image: ratnadeepb/micoinit:latest
+        name: mico-init2
+        securityContext:
+          allowPrivilegeEscalation: y
+          capabilities:
+            add:
+            - NET_ADMIN
+            - NET_RAW
+            drop:
+            - ALL
+          privileged: y

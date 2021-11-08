@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-import  yaml
+import yaml
 
 DEP_DIR = "k8s_deployment/{}"
+
 
 def parse_config() -> list:
     """
@@ -15,6 +16,7 @@ def parse_config() -> list:
     for i in range(len(read_data)):
         indices.append([read_data[i]['index'], read_data[i]['replicas']])
     return indices
+
 
 def writeConfig(image):
     """
@@ -30,38 +32,90 @@ def writeConfig(image):
 
         # the service part
         svc = {'apiVersion': 'v1',
-                        'kind': 'Service', 
-                        'metadata': {'name': name},
-                        'spec': {'selector': {'app': name},
-                                'ports': [{'protocol': 'TCP',
-                                            'port': 5000,
-                                            'targetPort': 5000 }],
-                        'type': 'LoadBalancer' }
-                        }
+               'kind': 'Service',
+               'metadata': {'name': name},
+               'spec': {'selector': {'app': name},
+                        'ports': [{'protocol': 'TCP',
+                                   'port': 5000,
+                                   'targetPort': 5000}],
+                        'type': 'LoadBalancer'}
+               }
 
         # the deployment part
         deployment = {'apiVersion': 'apps/v1',
-                        'kind': 'Deployment',
-                        'metadata': {'name': name,
-                                        'labels': { 'app': name
-                                        }
-                        },
-                        'spec': { 'replicas': replicas,
-                                    'selector': {'matchLabels': {'app': name}},
-                                    'template': {'metadata': {'labels': {'app': name}},
-                                                    'spec': {'containers': 
-                                                                [{'name': name,
-                                                                    'image': image,
-                                                                    'ports': [
-                                                                        {'containerPort': 5000}
-                                                                    ],
-                                                                    'resources': {'limits': {'memory': '100Mi', 'cpu': '1500m'},
-                                                                                'requests': {'memory': '50Mi', 'cpu': '1000m'}
-                                                                    }
-                                                    }]}
-                                    },
-                        }
-        }
+                      'kind': 'Deployment',
+                      'metadata': {'name': name,
+                                   'labels': {'app': name},
+                                   'annotations': {"sidecar.jaegertracing.io/inject": "true"}
+                                   },
+                      'spec': {'replicas': replicas,
+                               'selector': {'matchLabels': {'app': name}},
+                               'template': {'metadata': {'labels': {'app': name}},
+                                            'spec': {'containers':
+                                                     [
+                                                         {'name': name,
+                                                          'image': image,
+                                                          'ports': [
+                                                              {'containerPort': 5000}
+                                                          ],
+                                                             'resources': {'limits': {'memory': '100Mi', 'cpu': '1500m'},
+                                                                           'requests': {'memory': '50Mi', 'cpu': '1000m'}
+                                                                           }
+                                                          },
+                                                         {'name': 'micoproxy',
+                                                                  'image': 'ratnadeepb/micoproxy:latest',
+                                                                  'ports': [
+                                                                      {'containerPort': 62081},
+                                                                      {'containerPort': 62082}
+                                                                  ],
+                                                          'securityContext': {
+                                                                      'runAsUser': 2102,
+                                                                      'allowPrivilegeEscalation': "y",
+                                                                      'capabilities': {
+                                                                          'add': [
+                                                                              'NET_ADMIN',
+                                                                              'NET_RAW'
+                                                                          ],
+                                                                          'drop': [
+                                                                              'ALL'
+                                                                          ]
+                                                                      },
+                                                                      'privileged': "y"
+                                                                  }
+                                                          }
+                                                     ],
+                                                     'initContainers': [{
+                                                         'name': 'mico-init1',
+                                                         'command': ['/usr/local/micoinit'],
+                                                         'image': 'ratnadeepb/micoinit:latest',
+                                                         'securityContext': {
+                                                             'privileged': "y"
+                                                         }
+                                                     },
+                                                         {
+                                                         'name': 'mico-init2',
+                                                         'command': ['iptables'],
+                                                         'args': ['-t', 'nat', '-L'],
+                                                         'image': 'ratnadeepb/micoinit:latest',
+                                                         'securityContext': {
+                                                                  'allowPrivilegeEscalation': "y",
+                                                                  'capabilities': {
+                                                                      'add': [
+                                                                          'NET_ADMIN',
+                                                                          'NET_RAW'
+                                                                      ],
+                                                                      'drop': [
+                                                                          'ALL'
+                                                                      ]
+                                                                  },
+                                                             'privileged': "y"
+                                                         }
+                                                     },
+                                                     ]
+                                                     }
+                                            },
+                               }
+                      }
 
         # write both parts to the same yaml
         with open(fname, 'w') as file:
@@ -69,8 +123,10 @@ def writeConfig(image):
             file.write("\n---\n\n")
             yaml.dump(deployment, file)
 
+
 def usage():
     print("{} <image_name>".format(__file__))
+
 
 if __name__ == "__main__":
     import sys
