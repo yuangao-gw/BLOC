@@ -1,17 +1,16 @@
 - index: 0
   svc: 
     - testapp-svc-1:5000/svc/1
-    - testapp-svc-2:5000/svc/2
-  replicas: 2
-  cost: 2
+  replicas: 1
+  cost: 0
 
 - index: 1
   svc:
     - testapp-svc-2:5000/svc/2
-  replicas: 4
+  replicas: 10
   cost: 2
 
 - index: 2
   svc:
-  replicas: 2
+  replicas: 10
   cost: 4
