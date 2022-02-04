@@ -16,11 +16,13 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    sidecar.jaegertracing.io/inject: 'true'
   labels:
     app: testapp-svc-1
   name: testapp-svc-1
 spec:
-  replicas: 4
+  replicas: 30
   selector:
     matchLabels:
       app: testapp-svc-1
@@ -29,19 +31,21 @@ spec:
       labels:
         app: testapp-svc-1
     spec:
+      nodeSelector:
+        workload: svc1
       containers:
-      - image: ratnadeepb/testapp:base
+      - image: ratnadeepb/testapp:latest
         name: testapp-svc-1
         ports:
         - containerPort: 5000
         resources:
           limits:
-            cpu: 1
+            cpu: 1500m
             memory: 100Mi
           requests:
-            cpu: 100m
+            cpu: 1000m
             memory: 50Mi
-      - image: ratnadeepb/micoproxy:latest
+      - image: ratnadeepb/micoproxy:leastconn
         name: micoproxy
         ports:
         - containerPort: 62081

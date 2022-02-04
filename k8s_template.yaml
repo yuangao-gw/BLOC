@@ -30,6 +30,8 @@ spec:
       labels:
         app: testapp-$index
     spec:
+      nodeSelector:
+        workload: svc1
       containers:
       - name: testapp-svc-$index
         image: ratnadeepb/testapp
