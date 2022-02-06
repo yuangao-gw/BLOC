@@ -70,6 +70,18 @@ The workhorse of the tool is a function that finds the largest prime number less
 
 The `cost` of the function is implemented by running this prime finding function `cost` times with a for loop.
 
+## Creating the deployment files
+
+There are two ways of creating the deployment files. A `create_yaml.py` script was created to create the yaml files from some defaults. However, the configuration is, for some time now, being done by editing the yaml files directly. An up-to-date config file is maintained in `k8s_template.yaml`.
+
+## MiCoProxy versions
+
+The `latest` version of the MiCoProxy docker now stands abandoned. The algorithms are separately deployed as their own algorithms:
+- `ratnadeepb/micoproxy:leasttime`
+- `ratnadeepb/micoproxy:leastconn`
+- `ratnadeepb/micoproxy:random`
+- `ratnadeepb/micoproxy:roundrobin`
+
 ## Note
 
 It is advisable to define the name of the image as an environment variable:
