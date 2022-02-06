@@ -1,15 +1,18 @@
-# variables used - 'index' and 'replicas'
+# Three variables are in use
+# $index --> which service is being created
+# $replicas
+# $label --> the node label used in the `nodeSelector` (typically `svc$index`)
 apiVersion: v1
 kind: Service
 metadata:
   name: testapp-svc-$index
 spec:
-  selector:
-    app: testapp-$index
   ports:
-  - protocol: "TCP"
-    port: 6000
+  - port: 5000
+    protocol: TCP
     targetPort: 5000
+  selector:
+    app: testapp-svc-$index
   type: LoadBalancer
 
 ---
@@ -17,23 +20,71 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: testapp-svc-$index
+  # annotations:
+  #   sidecar.jaegertracing.io/inject: 'true'
   labels:
-    app: testapp-$index
+    app: testapp-svc-$index
+  name: testapp-svc-$index
 spec:
   replicas: $replicas
   selector:
     matchLabels:
-      app: testapp-$index
+      app: testapp-svc-$index
   template:
     metadata:
       labels:
-        app: testapp-$index
+        app: testapp-svc-$index
     spec:
       nodeSelector:
-        workload: svc1
+        workload: $label
       containers:
-      - name: testapp-svc-$index
-        image: ratnadeepb/testapp
+      - image: ratnadeepb/testapp:latest
+        name: testapp-svc-$index
         ports:
         - containerPort: 5000
+        resources:
+          limits:
+            cpu: 1500m
+            memory: 100Mi
+          requests:
+            cpu: 1000m
+            memory: 50Mi
+      - image: ratnadeepb/micoproxy:leasttime
+        name: micoproxy
+        ports:
+        - containerPort: 62081
+        - containerPort: 62082
+        securityContext:
+          allowPrivilegeEscalation: y
+          capabilities:
+            add:
+            - NET_ADMIN
+            - NET_RAW
+            drop:
+            - ALL
+          privileged: y
+          runAsUser: 2102
+      initContainers:
+      - command:
+        - /usr/local/micoinit
+        image: ratnadeepb/micoinit:latest
+        name: mico-init1
+        securityContext:
+          privileged: y
+      - args:
+        - -t
+        - nat
+        - -L
+        command:
+        - iptables
+        image: ratnadeepb/micoinit:latest
+        name: mico-init2
+        securityContext:
+          allowPrivilegeEscalation: y
+          capabilities:
+            add:
+            - NET_ADMIN
+            - NET_RAW
+            drop:
+            - ALL
+          privileged: y
