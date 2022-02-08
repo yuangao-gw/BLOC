@@ -24,7 +24,7 @@ import logging
 
 LOCAL_RESPONSE_TIME = 0
 TOTAL_RESPONSE_TIME = 0
-START_TIME = time.perf_counter()
+START_TIME = time.process_time_ns()
 FREQ = 0
 
 app = Flask(__name__)
@@ -78,7 +78,7 @@ def get_stats() -> dict:
             'mem': mem_usage(),
             'local_response_time':  LOCAL_RESPONSE_TIME,
             'total_response_time': TOTAL_RESPONSE_TIME,
-            'perf_counter': FREQ
+            'frequency of requests': FREQ
             }
 
 
@@ -96,13 +96,18 @@ def serve(index) -> dict:
     global FREQ
 
     # measure how many requests are we getting
-    tmp = time.perf_counter()
+    tmp = time.process_time_ns()
     FREQ = tmp - START_TIME
     START_TIME = tmp
 
-    start = time.perf_counter()
+    start = time.process_time_ns()
 
+    Log_Format = "%(levelname)s %(asctime)s - %(message)s"
+
+    logging.basicConfig(format=Log_Format,
+                        level=logging.INFO)
     logger = logging.getLogger("mico_serve_logger")
+    logger.info("serve called")
 
     index = list({index})[0]  # get the number from the param
     data = parse_config()  # get config data
@@ -117,10 +122,12 @@ def serve(index) -> dict:
     p = 100
     for i in range(cost):
         largestPrime(p)
-    LOCAL_RESPONSE_TIME = time.perf_counter() - start
+    LOCAL_RESPONSE_TIME = time.process_time_ns() - start
 
     if urls is None or len(urls) == 0:  # url list is empty => this is a leaf node
-        TOTAL_RESPONSE_TIME = time.perf_counter() - start
+        TOTAL_RESPONSE_TIME = time.process_time_ns() - start
+        logger.info(
+            f"No URLs: local: {LOCAL_RESPONSE_TIME}, total: {TOTAL_RESPONSE_TIME}")
         return {'urls': None, 'cost': cost}
     else:  # non-leaf node
         try:  # request might fail
@@ -131,11 +138,16 @@ def serve(index) -> dict:
             host = s[0].split('=')[1].split(',')[0]
             port = s[1].split('=')[1].split(')')[0]
 
-            TOTAL_RESPONSE_TIME = time.perf_counter() - start
+            TOTAL_RESPONSE_TIME = time.process_time_ns() - start
+            logger.info(
+                f"Conn Err: local: {LOCAL_RESPONSE_TIME}, total: {TOTAL_RESPONSE_TIME}")
 
             return failure_response("{}:{}".format(host, port), 404)
 
-        TOTAL_RESPONSE_TIME = time.perf_counter() - start
+        logger.info(
+            f"Success: local: {LOCAL_RESPONSE_TIME}, total: {TOTAL_RESPONSE_TIME}")
+        TOTAL_RESPONSE_TIME = time.process_time_ns() - start
+
         # doesn't matter what is returned
         return {'urls': list(urls), 'cost': cost}
 
