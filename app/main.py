@@ -127,7 +127,7 @@ def serve(index) -> dict:
     if urls is None or len(urls) == 0:  # url list is empty => this is a leaf node
         TOTAL_RESPONSE_TIME = time.process_time_ns() - start
         logger.info(
-            f"No URLs: local: {LOCAL_RESPONSE_TIME}, total: {TOTAL_RESPONSE_TIME}")
+            f"No URLs: local: {LOCAL_RESPONSE_TIME} total: {TOTAL_RESPONSE_TIME}")
         return {'urls': None, 'cost': cost}
     else:  # non-leaf node
         try:  # request might fail
@@ -140,12 +140,12 @@ def serve(index) -> dict:
 
             TOTAL_RESPONSE_TIME = time.process_time_ns() - start
             logger.info(
-                f"Conn Err: local: {LOCAL_RESPONSE_TIME}, total: {TOTAL_RESPONSE_TIME}")
+                f"Conn Err: local: {LOCAL_RESPONSE_TIME} total: {TOTAL_RESPONSE_TIME}")
 
             return failure_response("{}:{}".format(host, port), 404)
 
         logger.info(
-            f"Success: local: {LOCAL_RESPONSE_TIME}, total: {TOTAL_RESPONSE_TIME}")
+            f"Success: local: {LOCAL_RESPONSE_TIME} total: {TOTAL_RESPONSE_TIME}")
         TOTAL_RESPONSE_TIME = time.process_time_ns() - start
 
         # doesn't matter what is returned
