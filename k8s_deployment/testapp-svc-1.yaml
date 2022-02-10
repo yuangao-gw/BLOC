@@ -22,7 +22,7 @@ metadata:
     app: testapp-svc-1
   name: testapp-svc-1
 spec:
-  replicas: 30
+  replicas: 10
   selector:
     matchLabels:
       app: testapp-svc-1
