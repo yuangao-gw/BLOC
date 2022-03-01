@@ -2,15 +2,15 @@
   svc: 
     - testapp-svc-1:5000/svc/1
   replicas: 1
-  cost: 0
+  cost: 1
 
 - index: 1
   svc:
     - testapp-svc-2:5000/svc/2
-  replicas: 10
-  cost: 2
+  replicas: 1
+  cost: 10 # using `read_file`
 
 - index: 2
   svc:
   replicas: 10
-  cost: 4
+  cost: 1000000 # using `read_file`
