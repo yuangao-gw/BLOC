@@ -21,16 +21,24 @@ import requests
 from requests.exceptions import ConnectionError
 import joblib
 import logging
+import os
 
-LOCAL_RESPONSE_TIME = 0
-TOTAL_RESPONSE_TIME = 0
+SVC_TIME = 0
+RTT = 0
 START_TIME = time.process_time_ns()
 FREQ = 0
 
 app = Flask(__name__)
 
 
-def isPrime(x) -> bool:
+def multiply(n):
+    # n = 250 results in a ~0.02 second op
+    # n = 1_000_000 is ~0.1 second op
+    for i in range(n):
+        i * i
+
+
+def is_prime(x) -> bool:
     k = 0
     for i in range(2, x // 2 + 1):
         if(x % i == 0):
@@ -41,10 +49,10 @@ def isPrime(x) -> bool:
         return False
 
 
-def largestPrime(x) -> int:
+def largest_prime(x) -> int:
     prime = -1
     for num in range(x):
-        if isPrime(num):
+        if is_prime(num):
             prime = num
     return prime
 
@@ -76,8 +84,8 @@ def get_stats() -> dict:
     """ Get data about CPU and memory usage """
     return {'cpu': cpu_usage(),
             'mem': mem_usage(),
-            'local_response_time':  LOCAL_RESPONSE_TIME,
-            'total_response_time': TOTAL_RESPONSE_TIME,
+            'service time':  SVC_TIME,
+            'round trip time': RTT,
             'frequency of requests': FREQ
             }
 
@@ -90,8 +98,8 @@ def failure_response(url: str, status: int) -> Response:
 @app.route('/svc/<int:index>', methods=['GET'])
 def serve(index) -> dict:
     """ Main workhorse function of the app """
-    global LOCAL_RESPONSE_TIME
-    global TOTAL_RESPONSE_TIME
+    global SVC_TIME
+    global RTT
     global START_TIME
     global FREQ
 
@@ -99,8 +107,6 @@ def serve(index) -> dict:
     tmp = time.process_time_ns()
     FREQ = tmp - START_TIME
     START_TIME = tmp
-
-    start = time.process_time_ns()
 
     Log_Format = "%(levelname)s %(asctime)s - %(message)s"
 
@@ -119,15 +125,18 @@ def serve(index) -> dict:
     urls = d['svc']  # get all urls to be called
     cost = d['cost']  # cost of this call
 
-    p = 100
-    for i in range(cost):
-        largestPrime(p)
-    LOCAL_RESPONSE_TIME = time.process_time_ns() - start
+    # p = 100 * cost
+    start = time.process_time_ns()
+    multiply(cost)
+    # largest_prime(p)
+    # for i in range(cost):
+    #     largestPrime(p)
+    SVC_TIME = time.process_time_ns() - start
 
     if urls is None or len(urls) == 0:  # url list is empty => this is a leaf node
-        TOTAL_RESPONSE_TIME = time.process_time_ns() - start
+        RTT = time.process_time_ns() - start
         logger.info(
-            f"No URLs: local: {LOCAL_RESPONSE_TIME} total: {TOTAL_RESPONSE_TIME}")
+            f"No URLs: local: {SVC_TIME} total: {RTT}")
         return {'urls': None, 'cost': cost}
     else:  # non-leaf node
         try:  # request might fail
@@ -138,15 +147,15 @@ def serve(index) -> dict:
             host = s[0].split('=')[1].split(',')[0]
             port = s[1].split('=')[1].split(')')[0]
 
-            TOTAL_RESPONSE_TIME = time.process_time_ns() - start
+            RTT = time.process_time_ns() - start
             logger.info(
-                f"Conn Err: local: {LOCAL_RESPONSE_TIME} total: {TOTAL_RESPONSE_TIME}")
+                f"Conn Err: local: {SVC_TIME} total: {RTT}")
 
             return failure_response("{}:{}".format(host, port), 404)
 
+        RTT = time.process_time_ns() - start
         logger.info(
-            f"Success: local: {LOCAL_RESPONSE_TIME} total: {TOTAL_RESPONSE_TIME}")
-        TOTAL_RESPONSE_TIME = time.process_time_ns() - start
+            f"Success: local: {SVC_TIME} total: {RTT}")
 
         # doesn't matter what is returned
         return {'urls': list(urls), 'cost': cost}
