@@ -36,6 +36,11 @@ spec:
       containers:
       - image: ratnadeepb/testapp:latest
         name: testapp-svc-1
+        env:
+        - name: COST
+          value: "0"
+        - name: INDEX
+          value: "1"
         ports:
         - containerPort: 5000
         resources:
