@@ -10,6 +10,7 @@
             calling `/statistics` return CPU and memory usage in percent
 """
 
+from urllib import request
 from flask import Flask
 from flask.wrappers import Response
 from joblib.parallel import delayed
@@ -21,21 +22,48 @@ import requests
 from requests.exceptions import ConnectionError
 import joblib
 import logging
+from logging.config import dictConfig
 import os
 
 SVC_TIME = 0
 RTT = 0
-START_TIME = time.process_time_ns()
+START_TIME = time.perf_counter_ns()
 FREQ = 0
+
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
 
 app = Flask(__name__)
 
+# for handler in app.logger.handlers:
+#     handler.setLevel()
+
+
+def sleep(n):
+    time.sleep(n)
+
 
 def multiply(n):
-    # n = 250 results in a ~0.02 second op
-    # n = 1_000_000 is ~0.1 second op
-    for i in range(n):
+    # n = 1 results in a ~0.05 second op
+    # n = 10 is ~0.15 second op
+    # n = 25 is ~0.5 second op
+    i = 0
+    while i < n:
         i * i
+        i += 0.00001
 
 
 def is_prime(x) -> bool:
@@ -95,6 +123,14 @@ def failure_response(url: str, status: int) -> Response:
     return Response('Error: failed to access {}\n'.format(url), status=status)
 
 
+# @app.before_first_request
+# def log_init():
+#     app.logger.setLevel(logging.INFO)
+    # defaultFormatter = "%(levelname)s %(asctime)s - %(message)s"
+    # for handler in app.logger.handlers:
+    #     handler.setFormatter(defaultFormatter)
+
+
 @app.route('/svc/<int:index>', methods=['GET'])
 def serve(index) -> dict:
     """ Main workhorse function of the app """
@@ -104,16 +140,16 @@ def serve(index) -> dict:
     global FREQ
 
     # measure how many requests are we getting
-    tmp = time.process_time_ns()
+    tmp = time.perf_counter_ns()
     FREQ = tmp - START_TIME
     START_TIME = tmp
 
-    Log_Format = "%(levelname)s %(asctime)s - %(message)s"
+    # Log_Format = "%(levelname)s %(asctime)s - %(message)s"
 
-    logging.basicConfig(format=Log_Format,
-                        level=logging.INFO)
-    logger = logging.getLogger("mico_serve_logger")
-    logger.info("serve called")
+    # logging.basicConfig(format=Log_Format,
+    #                     level=logging.INFO)
+    # logger = logging.getLogger("mico_serve_logger")
+    # logger.info("server called")
 
     index = list({index})[0]  # get the number from the param
     data = parse_config()  # get config data
@@ -123,43 +159,51 @@ def serve(index) -> dict:
 
     d = data[index]  # get the config for the given index
     urls = d['svc']  # get all urls to be called
-    cost = d['cost']  # cost of this call
+    # cost = d['cost']  # cost of this call
+    cost = float(os.getenv("COST"))
 
     # p = 100 * cost
-    start = time.process_time_ns()
-    multiply(cost)
-    # largest_prime(p)
+    start = time.perf_counter_ns()
+
+    sleep(cost)
+    # multiply(cost)
+    # largest_prime(cost)
     # for i in range(cost):
     #     largestPrime(p)
-    SVC_TIME = time.process_time_ns() - start
+    SVC_TIME = time.perf_counter_ns() - start
 
     if urls is None or len(urls) == 0:  # url list is empty => this is a leaf node
-        RTT = time.process_time_ns() - start
-        logger.info(
+        RTT = time.perf_counter_ns() - start
+        app.logger.info(
             f"No URLs: local: {SVC_TIME} total: {RTT}")
         return {'urls': None, 'cost': cost}
     else:  # non-leaf node
         try:  # request might fail
-            _ = joblib.Parallel(prefer="threads", n_jobs=len(urls))(
-                (delayed(requests.get)("http://{}".format(url)) for url in urls))
+            resp = joblib.Parallel(prefer="threads", n_jobs=len(urls))(
+                (delayed(requests.get)("http://{}".format(url), timeout=20) for url in urls))
+            RTT = max([r.elapsed.total_seconds() for r in resp])
+            app.logger.info(f"Success: local: {SVC_TIME} total: {RTT}")
         except ConnectionError as e:  # send page not found if it does
             s = e.args[0].args[0].split()
             host = s[0].split('=')[1].split(',')[0]
             port = s[1].split('=')[1].split(')')[0]
 
-            RTT = time.process_time_ns() - start
-            logger.info(
+            RTT = time.perf_counter_ns() - start
+            app.logger.info(
                 f"Conn Err: local: {SVC_TIME} total: {RTT}")
 
             return failure_response("{}:{}".format(host, port), 404)
-
-        RTT = time.process_time_ns() - start
-        logger.info(
-            f"Success: local: {SVC_TIME} total: {RTT}")
 
         # doesn't matter what is returned
         return {'urls': list(urls), 'cost': cost}
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0')
+    index = int(os.getenv("INDEX"))
+    app.logger.info(f"index is: {index}")
+    if index == 2:
+        app.logger.info("starting single threaded server")
+        app.run(host='0.0.0.0', threaded=False)
+    else:
+        app.logger.info("starting multi threaded server")
+        app.run(host='0.0.0.0')
