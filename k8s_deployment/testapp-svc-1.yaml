@@ -22,7 +22,7 @@ metadata:
     app: testapp-svc-1
   name: testapp-svc-1
 spec:
-  replicas: 10
+  replicas: 1
   selector:
     matchLabels:
       app: testapp-svc-1
@@ -50,8 +50,11 @@ spec:
           requests:
             cpu: 1000m
             memory: 50Mi
-      - image: ratnadeepb/micoproxy:leastconn
+      - image: ratnadeepb/micoproxy:latest
         name: micoproxy
+        env:
+        - name: LBPolicy
+          value: "RangeHash"
         ports:
         - containerPort: 62081
         - containerPort: 62082
