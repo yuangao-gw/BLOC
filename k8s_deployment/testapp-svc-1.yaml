@@ -22,7 +22,7 @@ metadata:
     app: testapp-svc-1
   name: testapp-svc-1
 spec:
-  replicas: 1
+  replicas: 40
   selector:
     matchLabels:
       app: testapp-svc-1
@@ -54,7 +54,7 @@ spec:
         name: micoproxy
         env:
         - name: LBPolicy
-          value: "RangeHash"
+          value: "LeastTime"
         ports:
         - containerPort: 62081
         - containerPort: 62082
