@@ -22,7 +22,7 @@ metadata:
     app: testapp-svc-1
   name: testapp-svc-1
 spec:
-  replicas: 40
+  replicas: 1
   selector:
     matchLabels:
       app: testapp-svc-1
@@ -41,6 +41,8 @@ spec:
           value: "0"
         - name: INDEX
           value: "1"
+        - name: SVC
+          value: "testapp-svc-2:5000/svc/1"
         ports:
         - containerPort: 5000
         resources:
@@ -54,7 +56,9 @@ spec:
         name: micoproxy
         env:
         - name: LBPolicy
-          value: "LeastTime"
+          value: "P2CLeastTime"
+        - name: CAP
+          value: "100"
         ports:
         - containerPort: 62081
         - containerPort: 62082

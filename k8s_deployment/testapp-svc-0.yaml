@@ -41,6 +41,8 @@ spec:
           value: "0"
         - name: INDEX
           value: "0"
+        - name: SVC
+          value: "testapp-svc-1:5000/svc/1"
         ports:
         - containerPort: 5000
         resources:
@@ -50,8 +52,13 @@ spec:
           requests:
             cpu: 1000m
             memory: 50Mi
-      - image: ratnadeepb/micoproxy:random
+      - image: ratnadeepb/micoproxy:latest
         name: micoproxy
+        env:
+        - name: LBPolicy
+          value: "P2CLeastTime"
+        - name: CAP
+          value: "100"
         ports:
         - containerPort: 62081
         - containerPort: 62082
