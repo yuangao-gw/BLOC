@@ -52,13 +52,15 @@ spec:
           requests:
             cpu: 1000m
             memory: 50Mi
-      - image: ratnadeepb/micoproxy:latest
+      - image: ratnadeepb/micoproxy:lcnew
         name: micoproxy
         env:
         - name: LBPolicy
-          value: "P2CLeastTime"
+          value: "LeastConn"
         - name: CAP
           value: "100"
+        - name: SLO
+          value: "3"
         ports:
         - containerPort: 62081
         - containerPort: 62082
