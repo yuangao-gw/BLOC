@@ -34,7 +34,7 @@ spec:
       nodeSelector:
         workload: svc2
       containers:
-      - image: ratnadeepb/testapp:latest
+      - image: ratnadeepb/testapp:updated
         name: testapp-svc-2
         env:
         - name: COST
@@ -50,12 +50,12 @@ spec:
           requests:
             cpu: 1000m
             memory: 50Mi
-      - image: ratnadeepb/micoproxy:lcnew
+      - image: ratnadeepb/micoproxy:credits
         name: micoproxy
         env:
         - name: LBPolicy
-          value: "LeastConn"
-        - name: CAP
+          value: "MLeastConn"
+        - name: CAPACITY
           value: "10"
         - name: SLO
           value: "1"
