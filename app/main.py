@@ -182,7 +182,7 @@ def serve(index) -> dict:
             resp = joblib.Parallel(prefer="threads", n_jobs=len(urls))(
                 (delayed(requests.get)("http://{}".format(url), timeout=20) for url in urls))
             for r in resp:
-                if not r.ok:
+                if r.status_code != 200:
                     return Response("Request failed\n", status=r.status_code)
             RTT = max([r.elapsed.total_seconds() for r in resp])
             app.logger.info(f"Success: local: {SVC_TIME} total: {RTT}")
