@@ -59,8 +59,6 @@ spec:
           value: "MLeastConn"
         - name: CAPACITY
           value: "100"
-        - name: SLO
-          value: "3"
         ports:
         - containerPort: 62081
         - containerPort: 62082
