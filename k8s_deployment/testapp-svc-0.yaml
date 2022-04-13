@@ -59,6 +59,10 @@ spec:
           value: "MLeastConn"
         - name: CAPACITY
           value: "100"
+        - name: RETRIES
+          value: 3
+        - name: UPSTREAM
+          value: ""
         ports:
         - containerPort: 62081
         - containerPort: 62082
