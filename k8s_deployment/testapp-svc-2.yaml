@@ -58,7 +58,7 @@ spec:
         - name: CAPACITY
           value: "10"
         - name: RETRIES
-          value: 3
+          value: "3"
         - name: UPSTREAM
           value: "testapp-svc-1"
         ports:
