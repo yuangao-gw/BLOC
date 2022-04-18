@@ -52,13 +52,23 @@ spec:
           requests:
             cpu: 1000m
             memory: 50Mi
-      - image: ratnadeepb/micoproxy:credits
+      - image: ratnadeepb/micoproxy:credits2
         name: micoproxy
         env:
+        - name: GIN_MODE
+          value: "release"
+        - name: CLIENTPORT
+          value: "5000"
+        - name: INPORT
+          value: "62081"
+        - name: OUTPORT
+          value: "62082"
         - name: LBPolicy
           value: "MLeastConn"
+        - name: SEND_INTERVAL
+          value: "1"
         - name: CAPACITY
-          value: "100"
+          value: "3"
         - name: RETRIES
           value: "3"
         - name: UPSTREAM
