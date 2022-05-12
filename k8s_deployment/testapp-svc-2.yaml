@@ -34,7 +34,7 @@ spec:
       nodeSelector:
         workload: svc2
       containers:
-      - image: ratnadeepb/testapp:updated
+      - image: ratnadeepb/testapp:latest
         name: testapp-svc-2
         env:
         - name: COST
@@ -50,7 +50,7 @@ spec:
           requests:
             cpu: 1000m
             memory: 50Mi
-      - image: ratnadeepb/micoproxy:credits2
+      - image: ratnadeepb/micoproxy:test
         name: micoproxy
         env:
         - name: GIN_MODE
@@ -63,8 +63,8 @@ spec:
           value: "62082"
         - name: LBPolicy
           value: "MLeastConn"
-        - name: SEND_INTERVAL
-          value: "1"
+        - name: RESET
+          value: "1000000"
         - name: CAPACITY
           value: "10"
         - name: RETRIES
