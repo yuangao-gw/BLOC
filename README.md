@@ -1,4 +1,4 @@
-# Micorservices Communication App (MiCo)
+# Micorservices Communication App
 
 A generic tool to create an arbitrary microservices topology to explore the communication between various services in a distributed application.
 
