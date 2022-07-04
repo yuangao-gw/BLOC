@@ -51,7 +51,7 @@ spec:
             cpu: 1000m
             memory: 50Mi
       - image: ratnadeepb/blocproxy:latest
-        name: micoproxy
+        name: blocproxy
         env:
         - name: CLIENTPORT
           value: "5000"
