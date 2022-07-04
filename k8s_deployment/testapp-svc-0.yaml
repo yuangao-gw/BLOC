@@ -52,7 +52,7 @@ spec:
           requests:
             cpu: 1000m
             memory: 50Mi
-      - image: ratnadeepb/micoproxy:test
+      - image: ratnadeepb/blocproxy:latest
         name: micoproxy
         env:
         - name: GIN_MODE
