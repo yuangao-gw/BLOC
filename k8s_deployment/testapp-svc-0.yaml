@@ -55,8 +55,6 @@ spec:
       - image: ratnadeepb/blocproxy:latest
         name: micoproxy
         env:
-        - name: GIN_MODE
-          value: "release"
         - name: CLIENTPORT
           value: "5000"
         - name: INPORT

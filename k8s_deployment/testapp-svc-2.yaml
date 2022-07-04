@@ -53,8 +53,6 @@ spec:
       - image: ratnadeepb/blocproxy:latest
         name: micoproxy
         env:
-        - name: GIN_MODE
-          value: "release"
         - name: CLIENTPORT
           value: "5000"
         - name: INPORT
@@ -69,8 +67,6 @@ spec:
           value: "10"
         - name: RETRIES
           value: "3"
-        - name: UPSTREAM
-          value: "testapp-svc-1"
         ports:
         - containerPort: 62081
         - containerPort: 62082
