@@ -160,9 +160,10 @@ def serve(index) -> dict:
     d = data[index]  # get the config for the given index
     urls = d['svc']  # get all urls to be called
     # cost = d['cost']  # cost of this call
-    cost = float(os.getenv("COST"))
+    # cost = float(os.getenv("COST"))
 
     # p = 100 * cost
+    cost = uniform(1.0, 5.0)
     start = time.perf_counter_ns()
 
     sleep(cost)
